@@ -134,8 +134,24 @@ def test_pay_nant_unsuccessfull(Accounts, c):
     assert c.balanceEL(john) == 7000
     assert c.balanceEL(joe) == 3000
 
-    with reverts("dev: overflow and negative check"):
+    with reverts("dev: overflow or negative transfer"):
         john.transfer(joe, -1)
+
+
+def test_pay_nant_overflow(Accounts, c):
+
+    owner = Accounts[0]
+    john = Accounts[1]
+    joe = Accounts[2]
+
+    owner.setAccountParams(john, True, 1, 3000, -1000)
+    owner.setAccountParams(joe, True, 1, 3000, -1000)
+
+    maximum = int("0x7" + "f" * 63, 16)
+    owner.pledge(john, maximum)
+    owner.pledge(joe, 1)
+    with reverts("dev: overflow or negative transfer"):
+        joe.transfer(john, 1)
 
 
 def test_pay_cm(Accounts, c):

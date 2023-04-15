@@ -608,7 +608,8 @@ contract cccur is owned {
         revert(); // dev: disabled accounts can't pledge
     if (!isActive(_to)) revert();  // dev: disabled accounts can't receive pledge
     // if (balanceEL[_to] + _value < 0) revert();                                  // Check for overflows
-    if (balanceEL[_to] + _value < balanceEL[_to] ) revert();                    // Check for overflows & avoid negative pledge
+    if (balanceEL[_to] + _value < balanceEL[_to] )
+        revert(); // dev: overflow or negative pledge
    // if (newAddress[_to]!=address(0)) revert();                                  // Replaced account cannot be pledged
     balanceEL[_to] += _value;                                                   // Add the amount to the recipient
     amountPledged += _value;                                                    // and to the Money supply
@@ -692,8 +693,10 @@ contract cccur is owned {
     // compute the received ammount
     int256 amount = _value - tax;
 
-    if (!checkEL(_from, amount + tax)) revert(); // dev: Not enough balance
-    if (balanceEL[_to] + amount < balanceEL[_to]) revert(); // dev: overflow and negative check
+    if (!checkEL(_from, amount + tax))
+        revert();  // dev: Not enough balance
+    if (balanceEL[_to] + amount < balanceEL[_to])
+        revert();  // dev: overflow or negative transfer
 
     // Do the transfer
     balanceEL[_from] -= amount + tax;         // Subtract from the sender
@@ -726,7 +729,8 @@ contract cccur is owned {
     // Check the limit & overflow
     if (!checkCMMin(_from, amount + tax)) revert();
     if (!checkCMMax(_to, amount)) revert();
-    if (balanceCM[_to] + amount < balanceCM[_to]) revert(); // dev: overflow and negative check
+    if (balanceCM[_to] + amount < balanceCM[_to])
+        revert(); // dev: overflow or negative transfer
 
     // Do the transfer
     balanceCM[_from] -= amount + tax;         // Subtract from the sender

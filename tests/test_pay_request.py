@@ -102,10 +102,10 @@ def test_update_request(Accounts, c):
     assert c.request(joe, john) == 300
 
     # cannot lower the request
-    with reverts("dev: overflow and negative check"):
+    with reverts("dev: overflow or negative transfer"):
         john.transferFrom(joe, -100)
 
-    with reverts("dev: overflow and negative check"):
+    with reverts("dev: overflow or negative transfer"):
         john.transferCMFrom(joe, -100)
 
 
