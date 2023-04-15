@@ -98,14 +98,41 @@ cat build/contracts/cccur.json |
         ( .name + "(" + ([ .inputs[].type ] | join(",")) + ")"  )'
 ```
 
+To get extended signature (with return values, useful for generating
+javascript interface on JSC3L for instance):
+
+```shell
+cat build/contracts/cccur.json |
+    jq -r '.abi[] | select(.name != null) |
+           ( .name + "(" + ([ .inputs[].type ] | join(",")) + ")" +
+               if ( .type == "function") then
+                  ( "=>" + ([.outputs[].type ] | join(",")))
+               else
+                  ""
+               end
+           )'
+```
+
+
 To provide the ethereum selector with the signature, you could:
 
 ```shell
-  cat build/contracts/cccur.json |
-      jq -r '.abi[] | select(.name != null) |
-          ( .name + "(" + ([ .inputs[].type ] | join(",")) + ")"  )' |
+  selector() {
+    local signature="$1"
+    python -c 'from web3 import Web3 as w3; print(w3.toHex(w3.keccak(text="'"$signature"'"))[:10])'
+  }
+
+cat build/contracts/cccur.json |
+    jq -r '.abi[] | select(.name != null) |
+           ( .name + "(" + ([ .inputs[].type ] | join(",")) + ")" +
+               if ( .type == "function") then
+                  ( "=>" + ([.outputs[].type ] | join(",")))
+               else
+                  ""
+               end
+           )' |
       while read sig; do
-          echo "$sig:$(selector "$sig")"
+          echo "$sig:$(selector "${sig%=>*}")"
       done | sort > hashes
 ```
 
